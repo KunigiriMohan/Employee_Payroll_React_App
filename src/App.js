@@ -8,8 +8,9 @@ function App() {
   return (
     <BrowserRouter>
        <Switch>
-         <Route path='/form' component={Payroll}></Route>
+         <Route exact path='/form' component={Payroll}></Route>
          <Route path='/' component={Dashboard}></Route>
+         <Route exact path="/form/:id" component={Payroll}></Route>
        </Switch>
     </BrowserRouter>
   );

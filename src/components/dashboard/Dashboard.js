@@ -1,45 +1,52 @@
-import React, { useState } from "react";
+import React from "react";
 import './Dashboard.css';
-import mainImage from '../dashboard/assets/images/logo.png'
+import mainImage from '../dashboard/assets/images/logo.png';
 import {Link} from 'react-router-dom';
-import profile1 from '../dashboard/assets/profile-images/Ellipse -1.png'
 import delete1 from './assets/icons/delete-black-18dp.svg';
-import edit from './assets/icons/create-black-18dp.svg'
-import axios from "axios";
-import Payrollform from "../payroll-form/Payroll-form";
-//import {EmployeePayrollService} from 'E:/React/Employee_Payroll_React_App/src/service/employees';
+import edit from './assets/icons/create-black-18dp.svg';
 import EmployeePayrollService from '../../service/employees';
+import profile1 from "../dashboard/assets/profile-images/Ellipse -1.png"
+import profile2 from "../dashboard/assets/profile-images/Ellipse -2.png"
+import profile3 from "../dashboard/assets/profile-images/Ellipse -3.png"
+import profile4 from '../dashboard/assets/profile-images/Ellipse -4.png'
+import { withRouter } from "react-router-dom";
 
 class Dashboard extends React.Component{
     
-    constructor(){
-        super()
+    constructor(props){
+        super(props)
         this.state = {
-            employees:[]
+            employees:[],
         }
     }
 
-    stringifyDate = (date) => {
-        const options = { day: 'numeric', month: 'short', year: 'numeric' };
-        const newDate = !date ? "undefined" : new Date(Date.parse(date)).toLocaleDateString('en-GB', options);
-        return newDate;
-      }
+
+    employees = [];
 
     componentDidMount=()=>{
-        //const employeeService = new EmployeePayrollService();
         EmployeePayrollService.getAllEmployee().then(response =>{
             const employee = response.data;
             this.setState({employees :employee });
-            console.log(this.state.employees);
         })
     }
 
+
     deleteEmployee=(id)=> {
         const value = parseInt(id);
-        console.log(value);
-        //const employeeService = new EmployeePayrollService();
         EmployeePayrollService.delete(value);
+        window.location.assign(`http://localhost:3000/`);
     }
+
+
+    updateEmployee = (employeeId) => {
+        console.log(employeeId)
+        //this.props.history.push("/form/:employeeId",{ employeeId});
+        this.props.history.push({
+            pathname: "/form/",
+            state: employeeId,
+          });
+        //console.log(`${employeeId}`)
+   };
 
     render(){
         return(
@@ -57,7 +64,7 @@ class Dashboard extends React.Component{
                     <div className="header-content">
                         <div className="emp-detail-text">Employee Details <div className="emp-count">{this.state.employees.length}</div>
                     </div>
-                    <Link  to='/form'><button className="add-button"><img src="../assets/icons/add-24px.svg"alt=""/>Add User</button></Link>
+                    <Link  to='/form'><button className="add-button"><img src={require("./assets/icons/add-24px.svg")}alt=""/>Add User</button></Link>
                 </div>
                     <div className="table-main">
                         <table id="table-display" className="table">
@@ -75,15 +82,21 @@ class Dashboard extends React.Component{
                                     this.state.employees.map(
                                         employee =>
                                         <tr key={employee.empId}>
-                                            <td><img className="profile" src={employee.profile}/></td>
+                                            <td><img className="profile"src={
+                                                  employee.profile ==="../dashboard/assets/profile-images/Ellipse -1.png"? profile1 
+                                                : employee.profile ==="../dashboard/assets/profile-images/Ellipse -2.png"? profile2
+                                                : employee.profile ==="../dashboard/assets/profile-images/Ellipse -3.png"? profile3 
+                                                : profile4
+                                            }alt="profile"/>
+                                            </td>
                                             <td>{employee.username}</td>
                                             <td>{employee.gender}</td>
                                             <td><div className="dept-label">{employee.department}</div></td>
                                             <td>{employee.salary}LPA</td>
-                                            <td>{this.stringifyDate(employee.day-employee.month-employee.year)}</td>
+                                            <td>{employee.day}/{employee.month}/{employee.year}</td>
                                             <td>
-                                                <img name={employee.emp_id} src={delete1} alt="delete" onClick={this.deleteEmployee(employee.empId)}/>
-                                                <img name={employee.emp_id} src={edit} alt="edit"/>
+                                                <img name={employee.emp_id} src={delete1} alt="delete" onClick={() =>this.deleteEmployee(employee.empId)}/>
+                                                <img name={employee.emp_id} src={edit} alt="edit" onClick={() =>this.updateEmployee(employee.empId) }/>
                                             </td>
                                         </tr>
                                     )
@@ -97,4 +110,4 @@ class Dashboard extends React.Component{
     }
         
 }
-export default Dashboard
+export default withRouter (Dashboard)

@@ -1,22 +1,25 @@
 import React from "react";
 import './Payroll-form.css';
-import axios from "axios";
 import mainImage from '../dashboard/assets/images/logo.png'
-import profile1 from '../dashboard/assets/profile-images/Ellipse -1.png'
-import profile2 from '../dashboard/assets/profile-images/Ellipse -2.png'
-import profile3 from '../dashboard/assets/profile-images/Ellipse -3.png'
+import profile1 from "../dashboard/assets/profile-images/Ellipse -1.png"
+import profile2 from "../dashboard/assets/profile-images/Ellipse -2.png"
+import profile3 from "../dashboard/assets/profile-images/Ellipse -3.png"
 import profile4 from '../dashboard/assets/profile-images/Ellipse -4.png'
 import { Link } from 'react-router-dom';
 import { useState } from "react";
-//import {EmployeePayrollService} from 'E:/React/Employee_Payroll_React_App/src/service/employees';
 import EmployeePayrollService from '../../service/employees';
+import { useParams } from 'react-router-dom';
+//import EmployeeService from '../../service/employees';
+import { useEffect } from "react";
+import { Redirect } from 'react-router-dom';
 
-const Payrollform =() =>{
+
+const Payrollform =(props) =>{
 
     const allDepartment = ['HR', 'Sales', 'Finance', 'Engineer', 'Others'];
 
     const [userRegistration, setUserRegistration] = useState({
-        username:"",
+        username:'',
         profile:"",
         gender:"",
         department:"",
@@ -24,14 +27,11 @@ const Payrollform =() =>{
         day:"",
         month:"",
         year:"",
-        Notes:""
+        note:"",
+        empId:'',
+        isUpdate:''
     })
 
-    const addemployeeHandler = (employee) => {
-        //const employeeService = new EmployeePayrollService;
-        EmployeePayrollService.addEmployee(employee);
-        
-    }
 
     const handleInput = (e) =>{
         const name = e.target.name;
@@ -40,6 +40,51 @@ const Payrollform =() =>{
       
     }
     
+
+    const value = props.location.state;
+    useEffect(() => {
+        if (value) {
+          getDataById(value);
+        }
+      }, 
+    []);
+
+    
+    const getDataById = (id) => {
+        EmployeePayrollService
+          .getEmployeeById(id)
+          .then((data) => {
+        setUserRegistration({...userRegistration,...data,username:data.data.username, profile:data.data.profile, gender:data.data.gender, department:data.data.department,salary:data.data.salary, day:data.data.day, month:data.data.month, year:data.data.year, note:data.data.note,isUpdate:true})
+        })
+         
+    }
+    
+    const save = async (event) => {
+        event.preventDefault();
+        
+        let object = {
+            username: userRegistration.username,
+            department: userRegistration.department,
+            gender: userRegistration.gender,
+            salary: userRegistration.salary,
+            day:userRegistration.day,
+            month:userRegistration.month,
+            year:userRegistration.year,
+            note: userRegistration.note,
+            profile: userRegistration.profile,
+            empId:parseInt(userRegistration.empId)
+          };
+          
+        if (userRegistration.isUpdate) {
+            EmployeePayrollService.updateEmployee(value,object);
+          } 
+        else {
+            EmployeePayrollService.addEmployee(object)
+        }  
+        window.location.assign(`http://localhost:3000/`);
+    }
+  
+
     const onCheckChange = (name) => {
         let index = userRegistration.department.indexOf(name);
 
@@ -56,21 +101,14 @@ const Payrollform =() =>{
     }
     const reset =(e)=>{
         e.preventDefault();
-        setUserRegistration({username:"", profile:"", gender:"", department:"",salary:"", day:"", month:"", year:"", Notes:""})
+        setUserRegistration({username:"", profile:"", gender:"", department:"",salary:"", day:"", month:"", year:"", note:""})
     }
-
-    const add = (e) => {
-        e.preventDefault();
-        addemployeeHandler(userRegistration);
-        alert();
-        setUserRegistration({username:"", profile:"", gender:"", department:"",salary:"", day:"", month:"", year:"", Notes:""})
-    };
 
         return(
             <>
                 <header className="header-content-header">
                 <div className="logo-content">
-                <img className='image' src={mainImage} />
+                <Link to="/"><img className='image' src={mainImage} /></Link>
                 <div>
                     <span className="emp-text">EMPLOYEE</span><br></br>
                     <span className="emp-text emp-payroll">PAYROLL</span>
@@ -78,37 +116,37 @@ const Payrollform =() =>{
                 </div>
                 </header>
                 <div className='payroll-main'>
-                    <form action=""  onSubmit={add} onReset={reset}>
+                    <form action="#"  onSubmit={save} onReset={reset}>
                         <div className='form-head'>Employee Payroll Form</div><br></br>
                         <div className='row'>
                             <label className='label-text' htmlFor='username' >Name</label>
-                            <input className='input' type="text" id='username' value={userRegistration.username} onChange={handleInput} name='username' placeholder='Your name..'/>
+                            <input className='input' type="text" id='username' value={userRegistration.username}  onChange={handleInput} name='username' placeholder='Your name..'/>
                         </div><br></br>
                         <div className='profile-radio-button'>
-                            <label className='label-text' htmlFor='profilePic'>Profile image</label>
+                            <label className='label-text' htmlFor='profile'>Profile image</label>
                             <label className='profile'>
-                                <input type="radio" id='profile1' value='../dashboard/assets/profile-images/Ellipse -1.png' onChange={handleInput} name='profile' required/>
+                                <input type="radio" id='profile1' value="../dashboard/assets/profile-images/Ellipse -1.png" checked={userRegistration.profile === "../dashboard/assets/profile-images/Ellipse -1.png"} onChange={handleInput} name='profile' required/>
                                 <img className='pic' id='image1' src={profile1}></img>
                             </label>
                             <label className='profile'>
-                                <input type="radio" id='profile2' value='../dashboard/assets/profile-images/Ellipse -2.png' onChange={handleInput} name='profile' required/>
+                            <input type="radio" id='profile2' value= "../dashboard/assets/profile-images/Ellipse -2.png" checked={userRegistration.profile === "../dashboard/assets/profile-images/Ellipse -2.png"} onChange={handleInput} name='profile' required/>
                                 <img className='pic' id='image2' src={profile2}></img>
                             </label>
                             <label className='profile'>
-                                <input type="radio" id='profile3' value='../dashboard/assets/profile-images/Ellipse -3.png' onChange={handleInput} name='profile' required/>
+                                <input type="radio" id='profile3' value="../dashboard/assets/profile-images/Ellipse -3.png" checked={userRegistration.profile === "../dashboard/assets/profile-images/Ellipse -3.png"} onChange={handleInput} name='profile' required/>
                                 <img className='pic' id='image3' src={profile3}></img>
                             </label>
                             <label className='profile'>
-                                <input type="radio" id='profile4' value='../dashboard/assets/profile-images/Ellipse -4.png' onChange={handleInput} name='profile'  required/>
+                                <input type="radio" id='profile4' value="../dashboard/assets/profile-images/Ellipse -4.png" checked={userRegistration.profile === "../dashboard/assets/profile-images/Ellipse -4.png"} onChange={handleInput} name='profile'  required/>
                                 <img className='pic' id='image4' src={profile4}></img>
                             </label>
                         </div><br></br>
                         <div className="row-content">
                                 <label className="label-text" htmlFor="gender">Gender</label>
-                                <input className="radio-button" type="radio" id="male" value='male' onChange={handleInput} name="gender"/>
+                                <input className="radio-button" type="radio" id="gender" value ="male" checked={userRegistration.gender === 'male'} onChange={handleInput} name="gender"/>
                                 <label className="text" htmlFor="male">Male</label>
-                                <input className="radio-butt" type="radio" id="female"value='female' onChange={handleInput} name="gender"/>
-                                <label className="text" htmlFor="female">Female</label>
+                                <input className="radio-butt" type="radio" id="female" value ="female" checked={userRegistration.gender === 'femmale'} onChange={handleInput} name="gender"/>
+                                <label className="text" htmlFor="female" value={userRegistration.gender}>Female</label>
                         </div><br></br>
                         <div className='row-content'>
                         <label className="label-text" htmlFor="department">Department</label>
@@ -176,7 +214,7 @@ const Payrollform =() =>{
                                 <option value="4">April</option>
                                 <option value="5">May</option>
                                 <option value="6">June</option>
-                                <option value="7">Jully</option>
+                                <option value="7">July</option>
                                 <option value="8">August</option>
                                 <option value="9">Sep</option>
                                 <option value="10">Oct</option>
@@ -197,15 +235,15 @@ const Payrollform =() =>{
                         </div><br></br>
                         <div className="row-content">
                             <div className="notes1">
-                                <label className="label-text" id="notes1" htmlFor="notes">Notes</label>
-                                <textarea className="area" id="notes" value={userRegistration.Notes} onChange={handleInput} name="Notes" placeholder="" ></textarea>
+                                <label className="label-text" id="note" htmlFor="note">Notes</label>
+                                <textarea className="area" id="note" value={userRegistration.note} onChange={handleInput} name="note" placeholder="" ></textarea>
                             </div>
                         </div><br></br>
                         <div className="buttonParent">
                             <div className="submit-reset">
                             <label className="label-text" htmlFor="button"></label>
-                                <Link  to='/dashboard'><button className="cancleButton">Cancel</button></Link>
-                                <button type="submit" className="button submitButton">Submit</button>
+                                <Link  to='/'><button className="cancleButton">Cancel</button></Link>
+                                <button type="submit" className="button submitButton" id="submitButton">{userRegistration.isUpdate ? 'Update' : 'Submit'}</button>
                                 <button type="reset" className="button resetButton">Reset</button>
                             </div>
                         </div><br></br>
